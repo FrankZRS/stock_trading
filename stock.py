@@ -5,10 +5,18 @@ import os
 from datetime import datetime
 import webbrowser
 
+def enable_print(): 
+    sys.stdout = sys.__stdout__
+
+def disable_print(): 
+    sys.stdout = open(os.devnull, "w")
+
 def check_market_cap(currency, market_cap): 
-    print(currency)
-    print(market_cap)
-    # return True
+    # enable_print()
+    # print(currency)
+    # print(market_cap)
+    # disable_print()
+
     if currency == "GBP": 
         if market_cap > 5000000000: 
             return True
@@ -20,22 +28,33 @@ def check_market_cap(currency, market_cap):
         return False
     return False
 
-# def check_open(date): 
-#     current_date = datetime.now()
-#     current_date_str = current_date.strftime(r"%Y-%m-%d")
+def single_candle(stock, candle): 
+    date = candle.index[0].strftime(r"%Y-%m-%d")
+    Open = candle.iloc[0][0]
+    High = candle.iloc[0][1]
+    Low = candle.iloc[0][2]
+    Close = candle.iloc[0][3]
 
-#     date_str = date.strftime(r"%Y-%m-%d")
-#     if current_date_str == date_str: 
-#         return True
-#     return False
+    full_range = High - Low
+    upper_shadow = High - max(Open, Close)
+    body = abs(Open - Close)
+    lower_shadow = min(Open, Close) - Low
+
+    enable_print()
+    if lower_shadow > 2 * body and upper_shadow / full_range <= 0.1: 
+        print(f"Hammer, {stock.info['symbol']} ({stock.info['shortName']}), {date}")
+    elif upper_shadow > 2 * body and lower_shadow / full_range <= 0.1: 
+        print(f"Inverted hammer, {stock.info['symbol']} ({stock.info['shortName']}), {date}")
+    elif body / full_range <= 0.1 and upper_shadow / full_range >= 0.3 and lower_shadow / full_range >= 0.3: 
+        print(f"Doji, {stock.info['symbol']} ({stock.info['shortName']}), {date}")
+    else: 
+        return
+    disable_print()
+
+    webbrowser.open(f"https://uk.finance.yahoo.com/chart/{stock.info['symbol']}")
 
 # Check for an island reversal
-def check_island(stock): 
-    #get data of this stock
-    data = yf.download(stock.info['symbol'], period="1mo", show_errors=False)
-
-    #print(data)
-
+def check_island(stock, data, max_days): 
     total_days = len(data.index)
     highs = []
     lows = []
@@ -62,24 +81,30 @@ def check_island(stock):
                     day_count_end += 1
 
                     if day_count_end == total_days: 
-                        return False # This is a cliff (half island)
+                        return # This is a cliff (half island)
                 else: 
                     break # This is a potential end of island
 
             if lows[day_count_end] > max(highs[day_count_start + 1: day_count_end]): 
                 start_date = data.index[day_count_start].strftime(r"%Y-%m-%d")
                 end_date = data.index[day_count_end].strftime(r"%Y-%m-%d")
+                current_date = datetime.now()
 
-                sys.stdout = sys.__stdout__
-
-                print(f"{stock.info['symbol']} ({stock.info['shortName']}): Island from {start_date} to {end_date}")
-                webbrowser.open(f"https://uk.finance.yahoo.com/chart/{stock.info['symbol']}")
+                delta = current_date - data.index[day_count_end]
+                delta_days = delta.days
                 
-                return True # This is an island
+                if delta_days < max_days:  # The island is formed recently enough
+                    enable_print()
+                    print(f"Island, {stock.info['symbol']} ({stock.info['shortName']}), {start_date} ~ {end_date}")
+                    disable_print()
+
+                    webbrowser.open(f"https://uk.finance.yahoo.com/chart/{stock.info['symbol']}")
+                
+                return # This is an island
             
         day_count_start += 1
     
-    return False # There is no island
+    return # There is no island
         
 def main(): 
     with open("stock.txt", "r") as file: 
@@ -87,22 +112,33 @@ def main():
     
     for symbol in symbols: 
         symbol = symbol.strip()
+        # print(symbol)
 
         try: 
-            sys.stdout = open(os.devnull, "w")
+            disable_print()
 
             stock = yf.Ticker(symbol)
+
+            # enable_print()
             # for key in stock.info: 
             #     print(f"{key}: {stock.info[key]}\n")
+            # disable_print()
 
             if not check_market_cap(stock.info["financialCurrency"], stock.info["marketCap"]): 
                 continue
 
-            if not check_island(stock): 
-                continue
+            # get data of this stock
+            data = yf.download(stock.info['symbol'], period="3mo", show_errors=False)
+            
+            # enable_print()
+            # print(data)
+            # disable_print()
 
-            # More filters here
-        except: 
+            latest = data.tail(1)
+            single_candle(stock, latest)
+            
+            check_island(stock, data, 3)
+        except Exception as e: 
             pass
 
 if __name__ == "__main__":
