@@ -11,6 +11,11 @@ def enable_print():
 def disable_print(): 
     sys.stdout = open(os.devnull, "w")
 
+def check_market(market): 
+    if market == "us_market" or market == "gb_market": 
+        return True
+    return False
+
 def check_market_cap(currency, market_cap): 
     # enable_print()
     # print(currency)
@@ -123,6 +128,9 @@ def main():
             # for key in stock.info: 
             #     print(f"{key}: {stock.info[key]}\n")
             # disable_print()
+
+            if not check_market(stock.info['market']): 
+                continue
 
             if not check_market_cap(stock.info["financialCurrency"], stock.info["marketCap"]): 
                 continue
