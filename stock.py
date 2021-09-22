@@ -11,7 +11,7 @@ def enable_print():
 def disable_print(): 
     sys.stdout = open(os.devnull, "w")
 
-def check_market(market): 
+def check_market(market): # us_market, gb_market
     if market == "us_market" or market == "gb_market": 
         return True
     return False
@@ -41,6 +41,9 @@ def single_candle(stock, candle):
     Close = candle.iloc[0][3]
 
     full_range = High - Low
+    if full_range == 0: 
+        return
+        
     upper_shadow = High - max(Open, Close)
     body = abs(Open - Close)
     lower_shadow = min(Open, Close) - Low
@@ -51,7 +54,10 @@ def single_candle(stock, candle):
     elif upper_shadow > 2 * body and lower_shadow / full_range <= 0.1: 
         print(f"Inverted hammer, {stock.info['symbol']} ({stock.info['shortName']}), {date}")
     elif body / full_range <= 0.1 and upper_shadow / full_range >= 0.3 and lower_shadow / full_range >= 0.3: 
-        print(f"Doji, {stock.info['symbol']} ({stock.info['shortName']}), {date}")
+        if upper_shadow / Open >= 0.03 and lower_shadow / Open >= 0.03: 
+            print(f"Long-legged doji, {stock.info['symbol']} ({stock.info['shortName']}), {date}")
+        else: 
+            print(f"Doji, {stock.info['symbol']} ({stock.info['shortName']}), {date}")
     else: 
         return
     disable_print()
