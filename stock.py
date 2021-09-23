@@ -64,6 +64,23 @@ def single_candle(stock, candle):
 
     webbrowser.open(f"https://uk.finance.yahoo.com/chart/{stock.info['symbol']}")
 
+# Checker for a bullish engulfing
+def check_engulfing(stock, candles): 
+    start_date = candles.index[0].strftime(r"%Y-%m-%d")
+    end_date = candles.index[1].strftime(r"%Y-%m-%d")
+
+    day1_open = candles.iloc[0][0]
+    day1_close = candles.iloc[0][3]
+    day2_open = candles.iloc[1][0]
+    day2_close = candles.iloc[1][3]
+
+    if day1_close < day1_open and day2_close > day2_open and day2_open < day1_close and day2_close > day1_open: 
+        enable_print()
+        print(f"Engulfing, {stock.info['symbol']} ({stock.info['shortName']}), {start_date} ~ {end_date}")
+        disable_print()
+
+        webbrowser.open(f"https://uk.finance.yahoo.com/chart/{stock.info['symbol']}")
+
 # Check for an island reversal
 def check_island(stock, data, max_days): 
     total_days = len(data.index)
@@ -148,8 +165,9 @@ def main():
             # print(data)
             # disable_print()
 
-            latest = data.tail(1)
-            single_candle(stock, latest)
+            single_candle(stock, data.tail(1))
+
+            check_engulfing(stock, data.tail(2))
             
             check_island(stock, data, 3)
         except Exception as e: 
