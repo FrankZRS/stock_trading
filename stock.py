@@ -53,7 +53,7 @@ def single_candle(stock, candle):
         print(f"Hammer, {stock.info['symbol']} ({stock.info['shortName']}), {date}")
     elif upper_shadow > 2 * body and lower_shadow / full_range <= 0.1: 
         print(f"Inverted hammer, {stock.info['symbol']} ({stock.info['shortName']}), {date}")
-    elif body / full_range <= 0.1 and upper_shadow / full_range >= 0.3 and lower_shadow / full_range >= 0.3: 
+    elif body / full_range <= 0.05 and upper_shadow / full_range >= 0.3 and lower_shadow / full_range >= 0.3: 
         if upper_shadow / Open >= 0.03 and lower_shadow / Open >= 0.03: 
             print(f"Long-legged doji, {stock.info['symbol']} ({stock.info['shortName']}), {date}")
         else: 
@@ -64,7 +64,7 @@ def single_candle(stock, candle):
 
     webbrowser.open(f"https://uk.finance.yahoo.com/chart/{stock.info['symbol']}")
 
-# Checker for a bullish engulfing
+# Bullish engulfing checker
 def check_engulfing(stock, candles): 
     start_date = candles.index[0].strftime(r"%Y-%m-%d")
     end_date = candles.index[1].strftime(r"%Y-%m-%d")
@@ -81,7 +81,7 @@ def check_engulfing(stock, candles):
 
         webbrowser.open(f"https://uk.finance.yahoo.com/chart/{stock.info['symbol']}")
 
-# Check for an island reversal
+# Island reversal checker
 def check_island(stock, data, max_days): 
     total_days = len(data.index)
     highs = []
