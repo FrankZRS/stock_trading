@@ -33,36 +33,57 @@ def check_market_cap(currency, market_cap):
         return False
     return False
 
-def single_candle(stock, candle): 
-    date = candle.index[0].strftime(r"%Y-%m-%d")
-    Open = candle.iloc[0][0]
-    High = candle.iloc[0][1]
-    Low = candle.iloc[0][2]
-    Close = candle.iloc[0][3]
+def read_single_candle(candle): 
+    candle_data = {}
+    candle_data['date'] = candle.index[0].strftime(r"%Y-%m-%d")
+    candle_data['open'] = candle.iloc[0][0]
+    candle_data['high'] = candle.iloc[0][1]
+    candle_data['low'] = candle.iloc[0][2]
+    candle_data['close'] = candle.iloc[0][3]
 
-    full_range = High - Low
-    if full_range == 0: 
-        return
+    candle_data['full_range'] = candle_data['high'] - candle_data['low']
+    if candle_data['full_range'] == 0: 
+        return None
         
-    upper_shadow = High - max(Open, Close)
-    body = abs(Open - Close)
-    lower_shadow = min(Open, Close) - Low
+    candle_data['upper_shadow'] = candle_data['high'] - max(candle_data['open'], candle_data['close'])
+    candle_data['body'] = abs(candle_data['open'] - candle_data['close'])
+    candle_data['lower_shadow'] = min(candle_data['open'], candle_data['close']) - candle_data['low']
+    return candle_data
 
-    enable_print()
-    if lower_shadow > 2 * body and upper_shadow / full_range <= 0.1: 
-        print(f"Hammer, {stock.info['symbol']} ({stock.info['shortName']}), {date}")
-    elif upper_shadow > 2 * body and lower_shadow / full_range <= 0.1: 
-        print(f"Inverted hammer, {stock.info['symbol']} ({stock.info['shortName']}), {date}")
-    elif body / full_range <= 0.05 and upper_shadow / full_range >= 0.3 and lower_shadow / full_range >= 0.3: 
-        if upper_shadow / Open >= 0.03 and lower_shadow / Open >= 0.03: 
-            print(f"Long-legged doji, {stock.info['symbol']} ({stock.info['shortName']}), {date}")
-        else: 
-            print(f"Doji, {stock.info['symbol']} ({stock.info['shortName']}), {date}")
+def check_hammer(stock, candle): 
+    candle_data = read_single_candle(candle)
+    if candle_data == None: 
+        return False
+
+    if candle_data['lower_shadow'] > 2 * candle_data['body'] and candle_data['upper_shadow'] / candle_data['full_range'] <= 0.1: 
+        enable_print()
+        print(f"Hammer, {stock.info['symbol']} ({stock.info['shortName']}), {candle_data['date']}")
+        disable_print()
+    elif candle_data['upper_shadow'] > 2 * candle_data['body'] and candle_data['lower_shadow'] / candle_data['full_range'] <= 0.1: 
+        enable_print()
+        print(f"Inverted hammer, {stock.info['symbol']} ({stock.info['shortName']}), {candle_data['date']}")
+        disable_print()
     else: 
-        return
-    disable_print()
+        return False
+    return True
 
-    webbrowser.open(f"https://uk.finance.yahoo.com/chart/{stock.info['symbol']}")
+def check_doji(stock, candle): 
+    candle_data = read_single_candle(candle)
+    if candle_data == None: 
+        return False
+    
+    if candle_data['body'] / candle_data['full_range'] <= 0.05 and candle_data['upper_shadow'] / candle_data['full_range'] >= 0.3 and candle_data['lower_shadow'] / candle_data['full_range'] >= 0.3: 
+        if candle_data['upper_shadow'] / candle_data['open'] >= 0.03 and candle_data['lower_shadow'] / candle_data['open'] >= 0.03: 
+            enable_print()
+            print(f"Long-legged doji, {stock.info['symbol']} ({stock.info['shortName']}), {candle_data['date']}")
+            disable_print()
+        else: 
+            enable_print()
+            print(f"Doji, {stock.info['symbol']} ({stock.info['shortName']}), {candle_data['date']}")
+            disable_print()
+        return True
+    else: 
+        return False
 
 # Bullish engulfing checker
 def check_engulfing(stock, candles): 
@@ -78,8 +99,9 @@ def check_engulfing(stock, candles):
         enable_print()
         print(f"Engulfing, {stock.info['symbol']} ({stock.info['shortName']}), {start_date} ~ {end_date}")
         disable_print()
-
-        webbrowser.open(f"https://uk.finance.yahoo.com/chart/{stock.info['symbol']}")
+        return True
+    else: 
+        return False
 
 # Island reversal checker
 def check_island(stock, data, max_days): 
@@ -109,7 +131,7 @@ def check_island(stock, data, max_days):
                     day_count_end += 1
 
                     if day_count_end == total_days: 
-                        return # This is a cliff (half island)
+                        return False # This is a cliff (half island)
                 else: 
                     break # This is a potential end of island
 
@@ -125,14 +147,11 @@ def check_island(stock, data, max_days):
                     enable_print()
                     print(f"Island, {stock.info['symbol']} ({stock.info['shortName']}), {start_date} ~ {end_date}")
                     disable_print()
-
-                    webbrowser.open(f"https://uk.finance.yahoo.com/chart/{stock.info['symbol']}")
-                
-                return # This is an island
+                    return True # This is an island
             
         day_count_start += 1
     
-    return # There is no island
+    return False # There is no island
         
 def main(): 
     with open("stock.txt", "r") as file: 
@@ -146,6 +165,7 @@ def main():
             disable_print()
 
             stock = yf.Ticker(symbol)
+            result = []
 
             # enable_print()
             # for key in stock.info: 
@@ -165,11 +185,16 @@ def main():
             # print(data)
             # disable_print()
 
-            single_candle(stock, data.tail(1))
+            result.append(check_hammer(stock, data.tail(1)))
 
-            check_engulfing(stock, data.tail(2))
+            result.append(check_doji(stock, data.tail(1)))
+
+            result.append(check_engulfing(stock, data.tail(2)))
+
+            result.append(check_island(stock, data, 3))
             
-            check_island(stock, data, 3)
+            if True in result: 
+                webbrowser.open(f"https://uk.finance.yahoo.com/chart/{stock.info['symbol']}")
         except Exception as e: 
             pass
 
