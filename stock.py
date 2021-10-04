@@ -12,7 +12,8 @@ def disable_print():
     sys.stdout = open(os.devnull, "w")
 
 def check_market(market): # us_market, gb_market
-    if market == "us_market" or market == "gb_market": 
+    market_list = ["us_market", "gb_market", "cn_market"]
+    if market in market_list: 
         return True
     return False
 
@@ -29,6 +30,11 @@ def check_market_cap(currency, market_cap):
 
     if currency == "USD": 
         if market_cap > 7000000000: 
+            return True
+        return False
+
+    if currency == "CNY": 
+        if market_cap > 20000000000: 
             return True
         return False
     return False
