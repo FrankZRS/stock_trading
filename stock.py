@@ -15,16 +15,22 @@ def load_symbols(market):
     """
     Load stock symbols
 
-        Allowed inputs for market: Western, Chinese, All
+        Allowed inputs for market: us, gb, cn, all
     """
 
     symbols = []
 
-    if market == "Western" or market == "All": 
-        with open("stock.txt", "r") as file: 
-            symbols = file.readlines()
+    if market == "us" or market == "all": 
+        with open("us_symbols.txt", "r") as file: 
+            us_symbols = file.read().splitlines()
+            symbols.extend(us_symbols)
+
+    if market == "gb" or market == "all": 
+        with open("gb_symbols.txt", "r") as file: 
+            gb_symbols = file.read().splitlines()
+            symbols.extend(gb_symbols)
     
-    if market == "Chinese" or market == "All": 
+    if market == "cn" or market == "all": 
         SS_A = 600000 # 沪A
         SZ_A = 0      # 深A
         CYB = 300000  # 创业板
@@ -256,10 +262,9 @@ def check_island(stock, data, max_days):
     return False # There is no island
         
 def main(): 
-    symbols = load_symbols("All")
+    symbols = load_symbols("all")
     
     for symbol in symbols: 
-        symbol = symbol.strip()
 
         # enable_print()
         # print(symbol)
