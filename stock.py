@@ -11,13 +11,81 @@ def enable_print():
 def disable_print(): 
     sys.stdout = open(os.devnull, "w")
 
-def check_market(market): # us_market, gb_market
+def load_symbols(market): 
+    """
+    Load stock symbols
+
+        Allowed inputs for market: Western, Chinese, All
+    """
+
+    symbols = []
+
+    if market == "Western" or market == "All": 
+        with open("stock.txt", "r") as file: 
+            symbols = file.readlines()
+    
+    if market == "Chinese" or market == "All": 
+        SS_A = 600000 # 沪A
+        SZ_A = 0      # 深A
+        CYB = 300000  # 创业板
+        ZXB = 2000    # 中小板
+        SS_B = 900000 # 沪B
+        SZ_B = 200000 # 深B
+
+        # 沪A
+        while SS_A <= 601999: 
+            symbols.append(f"{SS_A:06d}.SS")
+            SS_A += 1
+
+        SS_A = 603000
+        while SS_A <= 603999: 
+            symbols.append(f"{SS_A:06d}.SS")
+            SS_A += 1
+
+        SS_A = 605000
+        while SS_A <= 605999: 
+            symbols.append(f"{SS_A:06d}.SS")
+            SS_A += 1
+        
+        # 深A
+        while SZ_A <= 999: 
+            symbols.append(f"{SZ_A:06d}.SZ")
+            SZ_A += 1
+
+        symbols.append("001696")
+        symbols.append("001896")
+        symbols.append("001979")
+
+        # 创业板
+        while CYB <= 301200: 
+            symbols.append(f"{CYB:06d}.SZ")
+            CYB += 1
+
+        # 中小板
+        while ZXB <= 2999: 
+            symbols.append(f"{ZXB:06d}.SZ")
+            ZXB += 1
+    return symbols
+
+def check_market(market): 
+    """
+    Check market of a stock
+
+        Allowed inputs for market: us_market, gb_market, cn_market
+    """
+
     market_list = ["us_market", "gb_market", "cn_market"]
     if market in market_list: 
         return True
     return False
 
 def check_market_cap(currency, market_cap): 
+    """
+    Filter company size by its market cap
+
+    流通市值
+    """
+
     # enable_print()
     # print(currency)
     # print(market_cap)
@@ -34,12 +102,18 @@ def check_market_cap(currency, market_cap):
         return False
 
     if currency == "CNY": 
-        if market_cap > 20000000000: 
+        if market_cap > 200000000000: 
             return True
         return False
     return False
 
 def read_single_candle(candle): 
+    """
+    Virtually create a candlestick
+
+    日K
+    """
+
     candle_data = {}
     candle_data['date'] = candle.index[0].strftime(r"%Y-%m-%d")
     candle_data['open'] = candle.iloc[0][0]
@@ -57,6 +131,12 @@ def read_single_candle(candle):
     return candle_data
 
 def check_hammer(stock, candle): 
+    """
+    Check for hammer and inverted hammer
+    
+    锤，倒锤
+    """
+
     candle_data = read_single_candle(candle)
     if candle_data == None: 
         return False
@@ -74,6 +154,12 @@ def check_hammer(stock, candle):
     return True
 
 def check_doji(stock, candle): 
+    """
+    Check for doji and long-legged doji
+
+    十字星，长十字星
+    """
+
     candle_data = read_single_candle(candle)
     if candle_data == None: 
         return False
@@ -91,8 +177,13 @@ def check_doji(stock, candle):
     else: 
         return False
 
-# Bullish engulfing checker
 def check_engulfing(stock, candles): 
+    """
+    Check for bullish engulfing
+
+    阳包阴
+    """
+
     start_date = candles.index[0].strftime(r"%Y-%m-%d")
     end_date = candles.index[1].strftime(r"%Y-%m-%d")
 
@@ -109,8 +200,13 @@ def check_engulfing(stock, candles):
     else: 
         return False
 
-# Island reversal checker
 def check_island(stock, data, max_days): 
+    """
+    Check for island reversal
+
+    岛形反转
+    """
+
     total_days = len(data.index)
     highs = []
     lows = []
@@ -160,18 +256,19 @@ def check_island(stock, data, max_days):
     return False # There is no island
         
 def main(): 
-    with open("stock.txt", "r") as file: 
-        symbols = file.readlines()
+    symbols = load_symbols("All")
     
     for symbol in symbols: 
         symbol = symbol.strip()
+
+        # enable_print()
         # print(symbol)
+        # disable_print()
 
         try: 
             disable_print()
 
             stock = yf.Ticker(symbol)
-            result = []
 
             # enable_print()
             # for key in stock.info: 
@@ -191,15 +288,12 @@ def main():
             # print(data)
             # disable_print()
 
-            result.append(check_hammer(stock, data.tail(1)))
-
-            result.append(check_doji(stock, data.tail(1)))
-
-            result.append(check_engulfing(stock, data.tail(2)))
-
-            result.append(check_island(stock, data, 3))
+            result = any(check_hammer(stock, data.tail(1)), 
+                         check_doji(stock, data.tail(1)), 
+                         check_engulfing(stock, data.tail(2)), 
+                         check_island(stock, data, 3))
             
-            if True in result: 
+            if result: 
                 webbrowser.open(f"https://uk.finance.yahoo.com/chart/{stock.info['symbol']}")
         except Exception as e: 
             pass
