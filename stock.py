@@ -15,21 +15,21 @@ def load_symbols(market):
     """
     Load stock symbols
 
-        Allowed inputs for market: us, gb, cn, all
+        Allowed inputs for market: gb, us, cn, all
     """
 
     symbols = []
+
+    if market == "gb" or market == "all": 
+        with open("gb_symbols.txt", "r") as file: 
+            gb_symbols = file.read().splitlines()
+            symbols.extend(gb_symbols)
 
     if market == "us" or market == "all": 
         with open("us_symbols.txt", "r") as file: 
             us_symbols = file.read().splitlines()
             symbols.extend(us_symbols)
 
-    if market == "gb" or market == "all": 
-        with open("gb_symbols.txt", "r") as file: 
-            gb_symbols = file.read().splitlines()
-            symbols.extend(gb_symbols)
-    
     if market == "cn" or market == "all": 
         SS_A = 600000 # 沪A
         SZ_A = 0      # 深A
