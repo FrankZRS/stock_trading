@@ -293,10 +293,10 @@ def main():
             # print(data)
             # disable_print()
 
-            result = any(check_hammer(stock, data.tail(1)), 
+            result = any([check_hammer(stock, data.tail(1)), 
                          check_doji(stock, data.tail(1)), 
                          check_engulfing(stock, data.tail(2)), 
-                         check_island(stock, data, 3))
+                         check_island(stock, data, 3)])
             
             if result: 
                 webbrowser.open(f"https://uk.finance.yahoo.com/chart/{stock.info['symbol']}")
