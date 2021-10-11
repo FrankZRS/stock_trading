@@ -21,17 +21,17 @@ def load_symbols(market):
     symbols = []
 
     if market == "gb" or market == "all": 
-        with open("gb_symbols.txt", "r") as file: 
+        with open("symbols_gb.txt", "r") as file: 
             gb_symbols = file.read().splitlines()
             symbols.extend(gb_symbols)
 
     if market == "us" or market == "all": 
-        with open("us_symbols.txt", "r") as file: 
+        with open("symbols_us.txt", "r") as file: 
             us_symbols = file.read().splitlines()
             symbols.extend(us_symbols)
 
     if market == "cn" or market == "all": 
-        with open("cn_symbols.txt", "r") as file: 
+        with open("symbols_cn.txt", "r") as file: 
             cn_symbols = file.read().splitlines()
             symbols.extend(cn_symbols)
     return symbols
@@ -76,99 +76,99 @@ def check_market_cap(currency, market_cap):
     #     return False
     return False
 
-def read_single_candle(candle): 
+def read_single_candle(data): 
     """
     Virtually create a candlestick
 
     日K
     """
 
-    candle_data = {}
-    candle_data['date'] = candle.index[0].strftime(r"%Y-%m-%d")
-    candle_data['open'] = candle.iloc[0][0]
-    candle_data['high'] = candle.iloc[0][1]
-    candle_data['low'] = candle.iloc[0][2]
-    candle_data['close'] = candle.iloc[0][3]
+    candle = {}
+    candle['date'] = data.index[0].strftime(r"%Y-%m-%d")
+    candle['open'] = data.iloc[0][0]
+    candle['high'] = data.iloc[0][1]
+    candle['low'] = data.iloc[0][2]
+    candle['close'] = data.iloc[0][3]
 
-    candle_data['full_range'] = candle_data['high'] - candle_data['low']
-    if candle_data['full_range'] == 0: 
+    candle['full_range'] = candle['high'] - candle['low']
+    if candle['full_range'] == 0: 
         return None
         
-    candle_data['upper_shadow'] = candle_data['high'] - max(candle_data['open'], candle_data['close'])
-    candle_data['body'] = abs(candle_data['open'] - candle_data['close'])
-    candle_data['lower_shadow'] = min(candle_data['open'], candle_data['close']) - candle_data['low']
-    return candle_data
+    candle['upper_shadow'] = candle['high'] - max(candle['open'], candle['close'])
+    candle['body'] = abs(candle['open'] - candle['close'])
+    candle['lower_shadow'] = min(candle['open'], candle['close']) - candle['low']
+    return candle
 
-def check_hammer(stock, candle): 
+def check_hammer(stock, data): 
     """
     Check for hammer and inverted hammer
     
     锤，倒锤
     """
 
-    candle_data = read_single_candle(candle)
-    if candle_data == None: 
+    candle = read_single_candle(data)
+    if candle == None: 
         return False
 
-    if candle_data['lower_shadow'] > 2 * candle_data['body'] and candle_data['upper_shadow'] / candle_data['full_range'] <= 0.1: 
+    if candle['lower_shadow'] > 2 * candle['body'] and candle['upper_shadow'] / candle['full_range'] <= 0.1: 
         enable_print()
-        print(f"Hammer, {stock.info['symbol']} ({stock.info['shortName']}), {candle_data['date']}")
+        print(f"Hammer, {stock.info['symbol']} ({stock.info['shortName']}), {candle['date']}")
         disable_print()
-    elif candle_data['upper_shadow'] > 2 * candle_data['body'] and candle_data['lower_shadow'] / candle_data['full_range'] <= 0.1: 
+    elif candle['upper_shadow'] > 2 * candle['body'] and candle['lower_shadow'] / candle['full_range'] <= 0.1: 
         enable_print()
-        print(f"Inverted hammer, {stock.info['symbol']} ({stock.info['shortName']}), {candle_data['date']}")
+        print(f"Inverted hammer, {stock.info['symbol']} ({stock.info['shortName']}), {candle['date']}")
         disable_print()
     else: 
         return False
     return True
 
-def check_doji(stock, candle): 
+def check_doji(stock, data): 
     """
     Check for doji, long-legged doji and propeller
 
     十字星，长十字星，螺旋桨
     """
 
-    candle_data = read_single_candle(candle)
-    if candle_data == None: 
+    candle = read_single_candle(data)
+    if candle == None: 
         return False
     
-    if candle_data['upper_shadow'] / candle_data['full_range'] >= 0.3 and candle_data['lower_shadow'] / candle_data['full_range'] >= 0.3: 
-        if candle_data['body'] / candle_data['full_range'] <= 0.05: 
-            if candle_data['upper_shadow'] / candle_data['open'] >= 0.03 and candle_data['lower_shadow'] / candle_data['open'] >= 0.03: 
+    if candle['upper_shadow'] / candle['full_range'] >= 0.3 and candle['lower_shadow'] / candle['full_range'] >= 0.3: 
+        if candle['body'] / candle['full_range'] <= 0.05: 
+            if candle['upper_shadow'] / candle['open'] >= 0.03 and candle['lower_shadow'] / candle['open'] >= 0.03: 
                 enable_print()
-                print(f"Long-legged doji, {stock.info['symbol']} ({stock.info['shortName']}), {candle_data['date']}")
+                print(f"Long-legged doji, {stock.info['symbol']} ({stock.info['shortName']}), {candle['date']}")
                 disable_print()
             else: 
                 enable_print()
-                print(f"Doji, {stock.info['symbol']} ({stock.info['shortName']}), {candle_data['date']}")
+                print(f"Doji, {stock.info['symbol']} ({stock.info['shortName']}), {candle['date']}")
                 disable_print()
-        elif candle_data['body'] / candle_data['full_range'] <= 0.3: 
+        elif candle['body'] / candle['full_range'] <= 0.3: 
             enable_print()
-            print(f"Propeller, {stock.info['symbol']} ({stock.info['shortName']}), {candle_data['date']}")
+            print(f"Propeller, {stock.info['symbol']} ({stock.info['shortName']}), {candle['date']}")
             disable_print()
         return True
     else: 
         return False
 
-def check_engulfing(stock, candles): 
+def check_engulfing(stock, data): 
     """
     Check for bullish engulfing
 
     阳包阴
     """
 
-    start_date = candles.index[0].strftime(r"%Y-%m-%d")
-    end_date = candles.index[1].strftime(r"%Y-%m-%d")
+    total_days = len(data.index)
+    candles = []
 
-    day1_open = candles.iloc[0][0]
-    day1_close = candles.iloc[0][3]
-    day2_open = candles.iloc[1][0]
-    day2_close = candles.iloc[1][3]
+    candle_count = 0
+    while candle_count < total_days: 
+        candles.append(read_single_candle(data.iloc[candle_count : candle_count + 1]))
+        candle_count += 1
 
-    if day1_close < day1_open and day2_close > day2_open and day2_open < day1_close and day2_close > day1_open: 
+    if candles[0]['close'] < candles[0]['open'] and candles[1]['close'] > candles[1]['open'] and candles[1]['open'] < candles[0]['close'] and candles[1]['close'] > candles[0]['open']: 
         enable_print()
-        print(f"Engulfing, {stock.info['symbol']} ({stock.info['shortName']}), {start_date} ~ {end_date}")
+        print(f"Engulfing, {stock.info['symbol']} ({stock.info['shortName']}), {candles[0]['date']} ~ {candles[1]['date']}")
         disable_print()
         return True
     else: 
@@ -182,17 +182,26 @@ def check_island(stock, data, max_days):
     """
 
     total_days = len(data.index)
+    candles = []
     highs = []
     lows = []
 
+    candle_count = 0
+    while candle_count < total_days: 
+        candles.append(read_single_candle(data.iloc[candle_count : candle_count + 1]))
+
+        highs.append(candles[candle_count]['high'])
+        lows.append(candles[candle_count]['low'])
+        candle_count += 1
+
     # Save high and low prices into lists
-    data_count = 0
+    candle_count = 0
 
-    while data_count < total_days: 
-        highs.append(data.iloc[data_count][1])
-        lows.append(data.iloc[data_count][2])
+    while candle_count < total_days: 
+        highs.append(data.iloc[candle_count][1])
+        lows.append(data.iloc[candle_count][2])
 
-        data_count += 1
+        candle_count += 1
 
     day_count_start = 0
 
@@ -212,8 +221,6 @@ def check_island(stock, data, max_days):
                     break # This is a potential end of island
 
             if lows[day_count_end] > max(highs[day_count_start + 1: day_count_end]): 
-                start_date = data.index[day_count_start].strftime(r"%Y-%m-%d")
-                end_date = data.index[day_count_end].strftime(r"%Y-%m-%d")
                 current_date = datetime.now()
 
                 delta = current_date - data.index[day_count_end]
@@ -221,7 +228,7 @@ def check_island(stock, data, max_days):
                 
                 if delta_days < max_days:  # The island is formed recently enough
                     enable_print()
-                    print(f"Island, {stock.info['symbol']} ({stock.info['shortName']}), {start_date} ~ {end_date}")
+                    print(f"Island, {stock.info['symbol']} ({stock.info['shortName']}), {candles[day_count_start]['date']} ~ {candles[day_count_end]['date']}")
                     disable_print()
                     return True # This is an island
             
