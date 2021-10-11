@@ -124,23 +124,28 @@ def check_hammer(stock, candle):
 
 def check_doji(stock, candle): 
     """
-    Check for doji and long-legged doji
+    Check for doji, long-legged doji and propeller
 
-    十字星，长十字星
+    十字星，长十字星，螺旋桨
     """
 
     candle_data = read_single_candle(candle)
     if candle_data == None: 
         return False
     
-    if candle_data['body'] / candle_data['full_range'] <= 0.05 and candle_data['upper_shadow'] / candle_data['full_range'] >= 0.3 and candle_data['lower_shadow'] / candle_data['full_range'] >= 0.3: 
-        if candle_data['upper_shadow'] / candle_data['open'] >= 0.03 and candle_data['lower_shadow'] / candle_data['open'] >= 0.03: 
+    if candle_data['upper_shadow'] / candle_data['full_range'] >= 0.3 and candle_data['lower_shadow'] / candle_data['full_range'] >= 0.3: 
+        if candle_data['body'] / candle_data['full_range'] <= 0.05: 
+            if candle_data['upper_shadow'] / candle_data['open'] >= 0.03 and candle_data['lower_shadow'] / candle_data['open'] >= 0.03: 
+                enable_print()
+                print(f"Long-legged doji, {stock.info['symbol']} ({stock.info['shortName']}), {candle_data['date']}")
+                disable_print()
+            else: 
+                enable_print()
+                print(f"Doji, {stock.info['symbol']} ({stock.info['shortName']}), {candle_data['date']}")
+                disable_print()
+        elif candle_data['body'] / candle_data['full_range'] <= 0.3: 
             enable_print()
-            print(f"Long-legged doji, {stock.info['symbol']} ({stock.info['shortName']}), {candle_data['date']}")
-            disable_print()
-        else: 
-            enable_print()
-            print(f"Doji, {stock.info['symbol']} ({stock.info['shortName']}), {candle_data['date']}")
+            print(f"Propeller, {stock.info['symbol']} ({stock.info['shortName']}), {candle_data['date']}")
             disable_print()
         return True
     else: 
