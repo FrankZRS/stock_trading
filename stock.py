@@ -1,3 +1,4 @@
+from numpy import result_type
 import yfinance as yf
 
 import sys
@@ -152,6 +153,11 @@ def check_doji(stock, data):
         return False
 
 def check_opening_marubozu(stock, data): 
+    """
+    Check for opening marubozu
+
+    捉腰带
+    """
     candle = read_single_candle(data)
     if candle == None: 
         return False
@@ -321,7 +327,6 @@ def main():
                          check_island(stock, data, 3)])
             
             if result: 
-                pass
                 webbrowser.open(f"https://uk.finance.yahoo.com/chart/{stock.info['symbol']}")
         except Exception as e: 
             pass
