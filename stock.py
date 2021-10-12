@@ -124,7 +124,7 @@ def check_hammer(stock, data):
 
 def check_doji(stock, data): 
     """
-    Check for doji, long-legged doji and propeller
+    Check for doji, long-legged doji and spinning top
 
     十字星，长十字星，螺旋桨
     """
@@ -145,7 +145,7 @@ def check_doji(stock, data):
                 disable_print()
         elif candle['body'] / candle['full_range'] <= 0.3: 
             enable_print()
-            print(f"Propeller, {stock.info['symbol']} ({stock.info['shortName']}), {candle['date']}")
+            print(f"Spinning top, {stock.info['symbol']} ({stock.info['shortName']}), {candle['date']}")
             disable_print()
         return True
     else: 
@@ -174,6 +174,40 @@ def check_engulfing(stock, data):
     else: 
         return False
 
+def check_twin_needle(stock, data): 
+    """
+    Check for twin needle (bottom)
+
+    双针探底
+    """
+    
+    total_days = len(data.index)
+    candles = []
+    lows = []
+
+    candle_count = 0
+    while candle_count < total_days: 
+        candles.append(read_single_candle(data.iloc[candle_count : candle_count + 1]))
+
+        lows.append(candles[candle_count]['low'])
+        candle_count += 1
+    
+    # Find 2 smallest lows
+    lowest_index_1 = lows.index(min(lows))
+    lowest_candle_1 = candles.pop(lowest_index_1)
+    lows.pop(lowest_index_1)
+
+    lowest_index_2 = lows.index(min(lows))
+    lowest_candle_2 = candles.pop(lowest_index_2)
+    
+    if abs(lowest_candle_1['low'] - lowest_candle_2['low']) / lowest_candle_2['close'] <= 0.003 and lowest_candle_1['lower_shadow'] / lowest_candle_1['full_range'] >= 0.3 and lowest_candle_2['lower_shadow'] / lowest_candle_2['full_range'] >= 0.3: 
+        enable_print()
+        print(f"Twin needle, {stock.info['symbol']} ({stock.info['shortName']}), {lowest_candle_1['date']} & {lowest_candle_2['date']}")
+        disable_print()
+        return True
+    else: 
+        return False
+
 def check_island(stock, data, max_days): 
     """
     Check for island reversal
@@ -196,11 +230,9 @@ def check_island(stock, data, max_days):
 
     # Save high and low prices into lists
     candle_count = 0
-
     while candle_count < total_days: 
         highs.append(data.iloc[candle_count][1])
         lows.append(data.iloc[candle_count][2])
-
         candle_count += 1
 
     day_count_start = 0
@@ -271,6 +303,7 @@ def main():
             result = any([check_hammer(stock, data.tail(1)), 
                          check_doji(stock, data.tail(1)), 
                          check_engulfing(stock, data.tail(2)), 
+                         check_twin_needle(stock, data.tail(5)), 
                          check_island(stock, data, 3)])
             
             if result: 
