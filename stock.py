@@ -151,6 +151,19 @@ def check_doji(stock, data):
     else: 
         return False
 
+def check_opening_marubozu(stock, data): 
+    candle = read_single_candle(data)
+    if candle == None: 
+        return False
+    
+    if (candle['close'] - candle['open']) / candle['close'] >= 0.01 and candle['lower_shadow'] / candle['full_range'] <= 0.05 and candle['body'] / candle['full_range'] >= 0.7: 
+        enable_print()
+        print(f"Opening marubozu, {stock.info['symbol']} ({stock.info['shortName']}), {candle['date']}")
+        disable_print()
+        return True
+    else: 
+        return False
+
 def check_engulfing(stock, data): 
     """
     Check for bullish engulfing
@@ -199,7 +212,7 @@ def check_twin_needle(stock, data):
 
     lowest_index_2 = lows.index(min(lows))
     lowest_candle_2 = candles.pop(lowest_index_2)
-    
+
     if abs(lowest_candle_1['low'] - lowest_candle_2['low']) / lowest_candle_2['close'] <= 0.003 and lowest_candle_1['lower_shadow'] / lowest_candle_1['full_range'] >= 0.3 and lowest_candle_2['lower_shadow'] / lowest_candle_2['full_range'] >= 0.3: 
         enable_print()
         print(f"Twin needle, {stock.info['symbol']} ({stock.info['shortName']}), {lowest_candle_1['date']} & {lowest_candle_2['date']}")
@@ -302,11 +315,13 @@ def main():
 
             result = any([check_hammer(stock, data.tail(1)), 
                          check_doji(stock, data.tail(1)), 
+                         check_opening_marubozu(stock, data.tail(1)), 
                          check_engulfing(stock, data.tail(2)), 
                          check_twin_needle(stock, data.tail(5)), 
                          check_island(stock, data, 3)])
             
             if result: 
+                pass
                 webbrowser.open(f"https://uk.finance.yahoo.com/chart/{stock.info['symbol']}")
         except Exception as e: 
             pass
