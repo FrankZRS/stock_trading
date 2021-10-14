@@ -1,4 +1,4 @@
-from numpy import result_type
+from numpy import result_type, short
 import yfinance as yf
 
 import sys
@@ -152,23 +152,39 @@ def check_doji(stock, data):
     else: 
         return False
 
-def check_opening_marubozu(stock, data): 
+def check_marubozu(stock, data): 
     """
-    Check for opening marubozu
+    Check for marubozu
 
-    捉腰带
+    光头光脚阳线
     """
     candle = read_single_candle(data)
     if candle == None: 
         return False
+
+    short_upper_shadow = True if candle['upper_shadow'] / candle['full_range'] <= 0.05 else False
+    short_lower_shadow = True if candle['lower_shadow'] / candle['full_range'] <= 0.05 else False
+    long_body = True if candle['body'] / candle['full_range'] >= 0.7 else False
+    soar = True if (candle['close'] - candle['open']) / candle['open'] >= 0.01 else False
     
-    if (candle['close'] - candle['open']) / candle['close'] >= 0.01 and candle['lower_shadow'] / candle['full_range'] <= 0.05 and candle['body'] / candle['full_range'] >= 0.7: 
-        enable_print()
-        print(f"Opening marubozu, {stock.info['symbol']} ({stock.info['shortName']}), {candle['date']}")
-        disable_print()
-        return True
-    else: 
-        return False
+    if long_body and soar: 
+        if short_upper_shadow and short_lower_shadow: 
+            enable_print()
+            print(f"Marubozu, {stock.info['symbol']} ({stock.info['shortName']}), {candle['date']}")
+            disable_print()
+            return True
+        elif short_upper_shadow: 
+            enable_print()
+            print(f"Marubozu closing, {stock.info['symbol']} ({stock.info['shortName']}), {candle['date']}")
+            disable_print()
+            return True
+        elif short_lower_shadow: 
+            enable_print()
+            print(f"Marubozu opening, {stock.info['symbol']} ({stock.info['shortName']}), {candle['date']}")
+            disable_print()
+            return True
+    
+    return False
 
 def check_engulfing(stock, data): 
     """
@@ -321,7 +337,7 @@ def main():
 
             result = any([check_hammer(stock, data.tail(1)), 
                          check_doji(stock, data.tail(1)), 
-                         check_opening_marubozu(stock, data.tail(1)), 
+                         check_marubozu(stock, data.tail(1)), 
                          check_engulfing(stock, data.tail(2)), 
                          check_twin_needle(stock, data.tail(5)), 
                          check_island(stock, data, 3)])
