@@ -209,6 +209,37 @@ def check_engulfing(stock, data):
     else: 
         return False
 
+def check_three_white_soldiers(stock, data): 
+    """
+    Check for three white soldiers
+
+    红三兵
+    """
+
+    total_days = len(data.index)
+    candles = []
+
+    candle_count = 0
+    while candle_count < total_days: 
+        candles.append(read_single_candle(data.iloc[candle_count : candle_count + 1]))
+
+        candle_count += 1
+
+    all_rise = True if candles[0]['close'] > candles[0]['open'] and candles[1]['close'] > candles[1]['open'] and candles[2]['close'] > candles[2]['open'] else False
+    all_long_body = True if candles[0]['body'] / candles[0]['full_range'] >= 0.7 and candles[1]['body'] / candles[1]['full_range'] >= 0.7 and candles[2]['body'] / candles[2]['full_range'] >= 0.7 else False
+
+    if all_rise and all_long_body: 
+        for index in range(total_days - 1): 
+            if not (candles[index + 1]['close'] > candles[index]['high'] and candles[index]['open'] <= candles[index + 1]['open'] <= candles[index]['close']): 
+                return False
+        
+        enable_print()
+        print(f"Three white soldiers, {stock.info['symbol']} ({stock.info['shortName']}), {candles[0]['date']} ~ {candles[2]['date']}")
+        disable_print()
+        return True
+    
+    return False
+
 def check_twin_needle(stock, data): 
     """
     Check for twin needle (bottom)
@@ -339,6 +370,7 @@ def main():
                          check_doji(stock, data.tail(1)), 
                          check_marubozu(stock, data.tail(1)), 
                          check_engulfing(stock, data.tail(2)), 
+                         check_three_white_soldiers(stock, data.tail(3)), 
                          check_twin_needle(stock, data.tail(5)), 
                          check_island(stock, data, 3)])
             
