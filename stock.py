@@ -267,9 +267,9 @@ def check_twin_needle(stock, data):
     lowest_index_2 = lows.index(min(lows))
     lowest_candle_2 = candles.pop(lowest_index_2)
 
-    all_soar = True if (lowest_index_1['close'] - lowest_index_1['open']) / lowest_index_1['open'] >= 0.01 and (lowest_index_2['close'] - lowest_index_2['open']) / lowest_index_2['open'] >= 0.01 else False
+    all_long_candle = True if lowest_candle_1['full_range'] / lowest_candle_1['open'] >= 0.01 and lowest_candle_2['full_range'] / lowest_candle_2['open'] >= 0.01 else False
 
-    if abs(lowest_candle_1['low'] - lowest_candle_2['low']) / lowest_candle_2['close'] <= 0.003 and all_soar and lowest_candle_1['lower_shadow'] / lowest_candle_1['full_range'] >= 0.3 and lowest_candle_2['lower_shadow'] / lowest_candle_2['full_range'] >= 0.3: 
+    if abs(lowest_candle_1['low'] - lowest_candle_2['low']) / lowest_candle_2['close'] <= 0.003 and all_long_candle and lowest_candle_1['lower_shadow'] / lowest_candle_1['full_range'] >= 0.3 and lowest_candle_2['lower_shadow'] / lowest_candle_2['full_range'] >= 0.3: 
         enable_print()
         print(f"Twin needle, {stock.info['symbol']} ({stock.info['shortName']}), {lowest_candle_1['date']} & {lowest_candle_2['date']}")
         disable_print()
