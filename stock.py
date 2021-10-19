@@ -71,10 +71,11 @@ def check_market_cap(currency, market_cap):
             return True
         return False
 
-    # if currency == "CNY": 
-    #     if market_cap > 10000000000: 
-    #         return True
-    #     return False
+    if currency == "CNY": 
+        return True
+        # if market_cap > 10000000000: 
+        #     return True
+        # return False
     return False
 
 def read_single_candle(data): 
