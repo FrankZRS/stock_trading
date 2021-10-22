@@ -78,6 +78,37 @@ def check_market_cap(currency, market_cap):
         # return False
     return False
 
+def calculate_moving_average(data, days): 
+    return data.tail(days).iloc[:,3].mean()
+
+def check_downtrend(data): 
+    total_days = len(data.index)
+    MA5 = []
+    MA10 = []
+    MA20 = []
+    
+    candle_count = total_days - 10
+    while candle_count < total_days: 
+        MA5.append(calculate_moving_average(data.iloc[ : candle_count + 1], 5))
+        MA10.append(calculate_moving_average(data.iloc[ : candle_count + 1], 10))
+        MA20.append(calculate_moving_average(data.iloc[ : candle_count + 1], 20))
+        candle_count += 1
+
+    checker_count = 0
+    day_count = 0
+    while checker_count < 10: 
+        if MA20[checker_count] > MA10[checker_count] > MA5[checker_count]: 
+            day_count += 1
+        else: 
+            day_count = 0
+        
+        if day_count == 3: 
+            return True
+        
+        checker_count += 1
+
+    return False
+    
 def read_single_candle(data): 
     """
     Virtually create a candlestick
@@ -108,6 +139,10 @@ def check_hammer(stock, data):
     锤，倒锤
     """
 
+    if not check_downtrend(data.tail(30)): 
+        return False
+
+    data = data.tail(1)
     candle = read_single_candle(data)
     if candle == None: 
         return False
@@ -130,7 +165,11 @@ def check_doji(stock, data):
 
     十字星，长十字星，螺旋桨
     """
+    
+    if not check_downtrend(data.tail(30)): 
+        return False
 
+    data = data.tail(1)
     candle = read_single_candle(data)
     if candle == None: 
         return False
@@ -159,6 +198,11 @@ def check_marubozu(stock, data):
 
     光头光脚阳线
     """
+    
+    if not check_downtrend(data.tail(30)): 
+        return False
+
+    data = data.tail(1)
     candle = read_single_candle(data)
     if candle == None: 
         return False
@@ -193,7 +237,11 @@ def check_engulfing(stock, data):
 
     阳包阴
     """
+    
+    if not check_downtrend(data.tail(30)): 
+        return False
 
+    data = data.tail(2)
     total_days = len(data.index)
     candles = []
 
@@ -217,6 +265,10 @@ def check_three_white_soldiers(stock, data):
     红三兵
     """
 
+    if not check_downtrend(data.tail(30)): 
+        return False
+
+    data = data.tail(3)
     total_days = len(data.index)
     candles = []
 
@@ -248,6 +300,10 @@ def check_twin_needle(stock, data):
     双针探底
     """
     
+    if not check_downtrend(data.tail(30)): 
+        return False
+
+    data = data.tail(5)
     total_days = len(data.index)
     candles = []
     lows = []
@@ -366,15 +422,15 @@ def main():
             data = yf.download(stock.info['symbol'], period="3mo", show_errors=False)
             
             # enable_print()
-            # print(data)
+            # print(data.tail(1+1).iloc[:,3].pct_change())
             # disable_print()
 
-            result = any([check_hammer(stock, data.tail(1)), 
-                         check_doji(stock, data.tail(1)), 
-                         check_marubozu(stock, data.tail(1)), 
-                         check_engulfing(stock, data.tail(2)), 
-                         check_three_white_soldiers(stock, data.tail(3)), 
-                         check_twin_needle(stock, data.tail(5)), 
+            result = any([check_hammer(stock, data), 
+                         check_doji(stock, data), 
+                         check_marubozu(stock, data), 
+                         check_engulfing(stock, data), 
+                         check_three_white_soldiers(stock, data), 
+                         check_twin_needle(stock, data), 
                          check_island(stock, data, 3)])
             
             if result: 
