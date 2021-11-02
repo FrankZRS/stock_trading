@@ -433,8 +433,8 @@ def main():
                          check_twin_needle(stock, data), 
                          check_island(stock, data, 3)])
             
-            if result: 
-                webbrowser.open(f"https://uk.finance.yahoo.com/chart/{stock.info['symbol']}")
+            # if result: 
+            #     webbrowser.open(f"https://uk.finance.yahoo.com/chart/{stock.info['symbol']}")
         except Exception as e: 
             pass
 

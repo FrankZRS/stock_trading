@@ -1,7 +1,7 @@
 import yfinance as yf
 from stock import check_market_cap
 
-symbol_files = ["symbols_gb.txt", "symbols_us.txt"]
+symbol_files = ["symbols_gb.txt", "symbols_us.txt", "symbols_cn.txt"]
 for symbol_file in symbol_files: 
     if symbol_file == "symbols_us.txt": 
         with open(symbol_file, "r+") as file1: 
