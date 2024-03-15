@@ -37,18 +37,6 @@ def load_symbols(market):
             symbols.extend(cn_symbols)
     return symbols
 
-def check_market(market): 
-    """
-    Check market of a stock
-
-        Allowed inputs for market: us_market, gb_market, cn_market
-    """
-
-    market_list = ["us_market", "gb_market", "cn_market"]
-    if market in market_list: 
-        return True
-    return False
-
 def check_market_cap(currency, market_cap): 
     """
     Filter company size by its market cap
@@ -411,9 +399,6 @@ def main():
             # for key in stock.info: 
             #     print(f"{key}: {stock.info[key]}\n")
             # disable_print()
-
-            if not check_market(stock.info['market']): 
-                continue
 
             if not check_market_cap(stock.info["financialCurrency"], stock.info["marketCap"]): 
                 continue
