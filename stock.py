@@ -404,7 +404,7 @@ def main():
                 continue
 
             # get data of this stock
-            data = yf.download(stock.info['symbol'], period="3mo", show_errors=False)
+            data = yf.download(stock.info['symbol'], period="3mo", show_errors=False, progress=False)
             
             # enable_print()
             # print(data.tail(1+1).iloc[:,3].pct_change())
