@@ -105,11 +105,11 @@ def read_single_candle(data):
     """
 
     candle = {}
-    candle['date'] = data.index[0].strftime(r"%Y-%m-%d")
-    candle['open'] = data.iloc[0][0]
-    candle['high'] = data.iloc[0][1]
-    candle['low'] = data.iloc[0][2]
-    candle['close'] = data.iloc[0][3]
+    candle['date'] = data.index[0].strftime(r'%Y-%m-%d')
+    candle['open'] = data.iloc[0]['Open']
+    candle['high'] = data.iloc[0]['High']
+    candle['low'] = data.iloc[0]['Low']
+    candle['close'] = data.iloc[0]['Close']
 
     candle['full_range'] = candle['high'] - candle['low']
     if candle['full_range'] == 0: 
@@ -344,8 +344,8 @@ def check_island(stock, data, max_days):
     # Save high and low prices into lists
     candle_count = 0
     while candle_count < total_days: 
-        highs.append(data.iloc[candle_count][1])
-        lows.append(data.iloc[candle_count][2])
+        highs.append(data.iloc[candle_count]['High'])
+        lows.append(data.iloc[candle_count]['Low'])
         candle_count += 1
 
     day_count_start = 0
