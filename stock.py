@@ -400,8 +400,8 @@ def main():
             #     print(f"{key}: {stock.info[key]}\n")
             # disable_print()
 
-            if not check_market_cap(stock.info["financialCurrency"], stock.info["marketCap"]):
-                continue
+            # if not check_market_cap(stock.info["financialCurrency"], stock.info["marketCap"]):
+            #     continue
 
             # get data of this stock
             data = yf.download(stock.info['symbol'], period="3mo", show_errors=False, progress=False)
