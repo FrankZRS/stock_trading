@@ -31,10 +31,10 @@ def load_symbols(market):
             us_symbols = file.read().splitlines()
             symbols.extend(us_symbols)
 
-    if market == "cn" or market == "all":
-        with open("symbols_cn.txt", "r") as file:
-            cn_symbols = file.read().splitlines()
-            symbols.extend(cn_symbols)
+    # if market == "cn" or market == "all":
+    #     with open("symbols_cn.txt", "r") as file:
+    #         cn_symbols = file.read().splitlines()
+    #         symbols.extend(cn_symbols)
     return symbols
 
 def check_market_cap(currency, market_cap):
@@ -59,11 +59,11 @@ def check_market_cap(currency, market_cap):
             return True
         return False
 
-    if currency == "CNY":
-        return True
-        # if market_cap > 10000000000:
-        #     return True
-        # return False
+    # if currency == "CNY":
+    #     return True
+    #     # if market_cap > 10000000000:
+    #     #     return True
+    #     # return False
     return False
 
 def calculate_moving_average(data, days):
