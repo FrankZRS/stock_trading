@@ -69,23 +69,30 @@ def check_market_cap(currency, market_cap):
 def calculate_moving_average(data, days):
     return data.tail(days).iloc[:,3].mean()
 
-def check_downtrend(data):
+def get_moving_averages(data):
     total_days = len(data.index)
     MA5 = []
     MA10 = []
     MA20 = []
+    MA60 = []
     
     candle_count = total_days - 10
     while candle_count < total_days:
         MA5.append(calculate_moving_average(data.iloc[ : candle_count + 1], 5))
         MA10.append(calculate_moving_average(data.iloc[ : candle_count + 1], 10))
         MA20.append(calculate_moving_average(data.iloc[ : candle_count + 1], 20))
+        MA60.append(calculate_moving_average(data.iloc[ : candle_count + 1], 60))
         candle_count += 1
+
+    return MA5, MA10, MA20, MA60
+
+def check_downtrend(data):
+    MA5, MA10, MA20, MA60 = get_moving_averages(data)
 
     checker_count = 0
     day_count = 0
     while checker_count < 10:
-        if MA20[checker_count] > MA10[checker_count] > MA5[checker_count]:
+        if MA60[checker_count] > MA20[checker_count] > MA10[checker_count] > MA5[checker_count]:
             day_count += 1
         else:
             day_count = 0
@@ -380,7 +387,38 @@ def check_island(stock, data, max_days):
         day_count_start += 1
     
     return False # There is no island
-        
+
+def check_golden_cross(stock, data):
+    """
+    Check for golden cross
+
+    均线金叉
+    """
+
+    golden_cross = False
+    MA5, MA10, MA20, MA60 = get_moving_averages(data)
+
+    checker_count = len(MA5) - 1
+    while checker_count > 0:
+        if MA20[checker_count] > MA60[checker_count] and MA20[checker_count - 1] < MA60[checker_count - 1]:
+            enable_print()
+            print(f"Golden cross (MA20 & MA60), {stock.info['symbol']} ({stock.info['shortName']}), {data.tail(10).index[checker_count].strftime(r'%Y-%m-%d')}")
+            disable_print()
+            golden_cross = True
+        if MA10[checker_count] > MA60[checker_count] and MA10[checker_count - 1] < MA60[checker_count - 1]:
+            enable_print()
+            print(f"Golden cross (MA10 & MA60), {stock.info['symbol']} ({stock.info['shortName']}), {data.tail(10).index[checker_count].strftime(r'%Y-%m-%d')}")
+            disable_print()
+            golden_cross = True
+        if MA5[checker_count] > MA20[checker_count] and MA5[checker_count - 1] < MA20[checker_count - 1]:
+            enable_print()
+            print(f"Golden cross (MA5 & MA20), {stock.info['symbol']} ({stock.info['shortName']}), {data.tail(10).index[checker_count].strftime(r'%Y-%m-%d')}")
+            disable_print()
+            golden_cross = True
+        checker_count -= 1
+
+    return golden_cross
+
 def main():
     symbols = load_symbols("all")
     
@@ -404,7 +442,7 @@ def main():
             #     continue
 
             # get data of this stock
-            data = yf.download(stock.info['symbol'], period="3mo", show_errors=False, progress=False)
+            data = yf.download(stock.info['symbol'], period="6mo", show_errors=False, progress=False)
             
             # enable_print()
             # print(data.tail(1+1).iloc[:,3].pct_change())
@@ -416,10 +454,11 @@ def main():
                          check_engulfing(stock, data),
                          check_three_white_soldiers(stock, data),
                          check_twin_needle(stock, data),
-                         check_island(stock, data, 3)])
+                         check_island(stock, data, 3),
+                         check_golden_cross(stock, data)])
             
-            if result:
-                webbrowser.open(f"https://uk.finance.yahoo.com/chart/{stock.info['symbol']}")
+            # if result:
+            #     webbrowser.open(f"https://uk.finance.yahoo.com/chart/{stock.info['symbol']}")
         except Exception as e:
             pass
 
