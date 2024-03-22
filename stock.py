@@ -298,7 +298,7 @@ def check_twin_needle(stock, data):
     if not check_downtrend(data.tail(30)):
         return False
 
-    data = data.tail(5)
+    data = data.tail(30)
     total_days = len(data.index)
     candles = []
     lows = []
@@ -310,13 +310,16 @@ def check_twin_needle(stock, data):
         lows.append(candles[candle_count]['low'])
         candle_count += 1
     
-    # Find 2 smallest lows
+    # Find 2 lowest candles
     lowest_index_1 = lows.index(min(lows))
     lowest_candle_1 = candles.pop(lowest_index_1)
     lows.pop(lowest_index_1)
 
     lowest_index_2 = lows.index(min(lows))
     lowest_candle_2 = candles.pop(lowest_index_2)
+
+    if abs(lowest_index_1 - lowest_index_2) > 10:
+        return False # Needles are too far away
 
     all_long_candle = True if lowest_candle_1['full_range'] / lowest_candle_1['open'] >= 0.01 and lowest_candle_2['full_range'] / lowest_candle_2['open'] >= 0.01 else False
 
