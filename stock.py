@@ -334,6 +334,9 @@ def check_island(stock, data, max_days):
 
     岛形反转
     """
+    
+    if not check_downtrend(data.tail(30)):
+        return False
 
     total_days = len(data.index)
     candles = []
@@ -394,6 +397,9 @@ def check_golden_cross(stock, data):
 
     均线金叉
     """
+    
+    if not check_downtrend(data.tail(30)):
+        return False
 
     golden_cross = False
     MA5, MA10, MA20, MA60 = get_moving_averages(data)
@@ -405,16 +411,16 @@ def check_golden_cross(stock, data):
             print(f"Golden cross (MA20 & MA60), {stock.info['symbol']} ({stock.info['shortName']}), {data.tail(10).index[checker_count].strftime(r'%Y-%m-%d')}")
             disable_print()
             golden_cross = True
-        if MA10[checker_count] > MA60[checker_count] and MA10[checker_count - 1] < MA60[checker_count - 1]:
-            enable_print()
-            print(f"Golden cross (MA10 & MA60), {stock.info['symbol']} ({stock.info['shortName']}), {data.tail(10).index[checker_count].strftime(r'%Y-%m-%d')}")
-            disable_print()
-            golden_cross = True
-        if MA5[checker_count] > MA20[checker_count] and MA5[checker_count - 1] < MA20[checker_count - 1]:
-            enable_print()
-            print(f"Golden cross (MA5 & MA20), {stock.info['symbol']} ({stock.info['shortName']}), {data.tail(10).index[checker_count].strftime(r'%Y-%m-%d')}")
-            disable_print()
-            golden_cross = True
+        # if MA10[checker_count] > MA60[checker_count] and MA10[checker_count - 1] < MA60[checker_count - 1]:
+        #     enable_print()
+        #     print(f"Golden cross (MA10 & MA60), {stock.info['symbol']} ({stock.info['shortName']}), {data.tail(10).index[checker_count].strftime(r'%Y-%m-%d')}")
+        #     disable_print()
+        #     golden_cross = True
+        # if MA5[checker_count] > MA20[checker_count] and MA5[checker_count - 1] < MA20[checker_count - 1]:
+        #     enable_print()
+        #     print(f"Golden cross (MA5 & MA20), {stock.info['symbol']} ({stock.info['shortName']}), {data.tail(10).index[checker_count].strftime(r'%Y-%m-%d')}")
+        #     disable_print()
+        #     golden_cross = True
         checker_count -= 1
 
     return golden_cross
@@ -448,10 +454,7 @@ def main():
             # print(data.tail(1+1).iloc[:,3].pct_change())
             # disable_print()
 
-            result = any([check_hammer(stock, data),
-                         check_doji(stock, data),
-                         check_marubozu(stock, data),
-                         check_engulfing(stock, data),
+            result = any([check_engulfing(stock, data),
                          check_three_white_soldiers(stock, data),
                          check_twin_needle(stock, data),
                          check_island(stock, data, 3),
