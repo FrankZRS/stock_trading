@@ -113,10 +113,10 @@ def read_single_candle(data):
 
     candle = {}
     candle['date'] = data.index[0].strftime(r'%Y-%m-%d')
-    candle['open'] = data.iloc[0]['Open']
-    candle['high'] = data.iloc[0]['High']
-    candle['low'] = data.iloc[0]['Low']
-    candle['close'] = data.iloc[0]['Close']
+    candle['open'] = data.iloc[0]['Open'].values[0]
+    candle['high'] = data.iloc[0]['High'].values[0]
+    candle['low'] = data.iloc[0]['Low'].values[0]
+    candle['close'] = data.iloc[0]['Close'].values[0]
 
     candle['full_range'] = candle['high'] - candle['low']
     if candle['full_range'] == 0:
@@ -454,6 +454,7 @@ def main():
             data = yf.download(stock.info['symbol'], period="6mo", progress=False)
             
             # enable_print()
+            # print(data)
             # print(data.tail(1+1).iloc[:,3].pct_change())
             # disable_print()
 
